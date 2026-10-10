@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, Float, String, DateTime
+﻿from sqlalchemy import Column, Integer, Float, String, DateTime
 from sqlalchemy.sql import func
 from app.database.connection import Base
 
@@ -11,4 +11,4 @@ class SensorReading(Base):
     sensor_id = Column(String, index=True)        # FIC-001, TI-027 ...
     sensor_name = Column(String)                  # Label lisible
     value = Column(Float)
-    unit = Column(String)                         # °C, m3/h, T/h, %
+    unit = Column(String)                         # Â°C, m3/h, T/h, %

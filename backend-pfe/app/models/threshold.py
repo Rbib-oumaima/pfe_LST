@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, Float, String, Boolean
+﻿from sqlalchemy import Column, Integer, Float, String, Boolean
 from app.database.connection import Base
 
 class Threshold(Base):

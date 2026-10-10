@@ -1,17 +1,18 @@
-from fastapi import FastAPI
+﻿from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import sensors, alerts, incidents, ai, thresholds
+from app.routers import sensors, alerts, incidents, ai, thresholds, auth, users, notifications  # ← ajouter
 from app.database.connection import engine, SessionLocal
 from app.database import init_db
 from app.models.sensor import SensorReading
 from app.services.sensor_service import load_csv_to_db
-import threading
-import random
-import time
+import threading, random, time
 from datetime import datetime
-
+from app.routers.intervention_reports import router as reports_router
 app = FastAPI(title="PFE OCP Dashboard API", version="1.0.0")
 
+app.include_router(auth.router)
+app.include_router(users.router)
+app.include_router(reports_router)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -88,7 +89,6 @@ SENSORS = [
     ('ANA-RM-SAG','RM SAG (Analyse)','Analyses','-',1.3,1.6),
 ]
 
-
 def simulate_realtime():
     time.sleep(20)
     while True:
@@ -98,12 +98,9 @@ def simulate_realtime():
             for sid, name, ligne, unit, vmin, vmax in SENSORS:
                 val = round(random.uniform(vmin, vmax), 2)
                 r = SensorReading(
-                    timestamp=ts,
-                    ligne=ligne,
-                    sensor_id=sid,
-                    sensor_name=name,
-                    value=val,
-                    unit=unit
+                    timestamp=ts, ligne=ligne,
+                    sensor_id=sid, sensor_name=name,
+                    value=val, unit=unit
                 )
                 db.add(r)
             db.commit()
@@ -111,7 +108,6 @@ def simulate_realtime():
         except Exception as e:
             print(f"Simulation error: {e}")
         time.sleep(10)
-
 
 @app.on_event("startup")
 async def startup_event():
@@ -121,13 +117,12 @@ async def startup_event():
     t.start()
     print("Realtime simulation started")
 
-
-app.include_router(sensors.router, prefix="/sensors", tags=["sensors"])
-app.include_router(alerts.router, prefix="/alerts", tags=["alerts"])
-app.include_router(incidents.router, prefix="/incidents", tags=["incidents"])
-app.include_router(ai.router, prefix="/ai", tags=["ai"])
-app.include_router(thresholds.router, prefix="/thresholds", tags=["thresholds"])
-
+app.include_router(sensors.router,       prefix="/sensors",       tags=["sensors"])
+app.include_router(alerts.router,        prefix="/alerts",        tags=["alerts"])
+app.include_router(incidents.router,     prefix="/incidents",     tags=["incidents"])
+app.include_router(ai.router,            prefix="/ai",            tags=["ai"])
+app.include_router(thresholds.router,    prefix="/thresholds",    tags=["thresholds"])
+app.include_router(notifications.router, prefix="/notifications", tags=["notifications"])  # ← nouveau
 
 @app.get("/")
 def root():
